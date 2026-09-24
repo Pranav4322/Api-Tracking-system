@@ -8,7 +8,7 @@
     "dev": "node --watch src/server.js"
   },
   "description": "API Key Usage Monitor  A control panel and API for tracking API key usage across multiple projects — built for the case most tools ignore: the same key being used live in several projects at once.  Instead of assuming one key belongs to one app, this system lets a single key be linked to many projects, each with its own usage threshold. Every request is checked and logged against both the key and the project it came from, so you can answer questions like:  - How many times has this key been used, total, across every project? - How much of *this* project's quota has this key used? - Can I disable a key for one project without breaking it everywhere else?  Built with Node/Express, Postgres, and Redis for real-time quota enforcement.",
-  "main": "index.js",
+  "main": "src/server.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Pranav4322/Api-Tracking-system.git"
