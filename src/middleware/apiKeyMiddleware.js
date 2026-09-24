@@ -37,4 +37,27 @@ async function apiKeyMiddleware(req, res, next) {
   const link = linkRows[0];
   if (link.status === 'revoked') return res.status(403).json({ error: 'This key has been disabled for this project' });
 
-  const { bucket, ttlSeconds } =
+  const { bucket, ttlSeconds } = windowBucket(link.threshold_window);
+  const projectCounterKey = `usage:${keyInfo.id}:${projectId}:${bucket}`;
+  const projectCount = await redis.incr(projectCounterKey);
+  if (projectCount === 1) await redis.expire(projectCounterKey, ttlSeconds);
+  if (projectCount > link.threshold_limit) {
+    return res.status(429).json({ error: 'Project usage threshold exceeded' });
+  }
+
+  if (keyInfo.global_limit) {
+    const { bucket: globalBucket, ttlSeconds: globalTtlSeconds } = windowBucket(keyInfo.global_window);
+    const globalCounterKey = `usage:${keyInfo.id}:global:${globalBucket}`;
+    const globalCount = await redis.incr(globalCounterKey);
+    if (globalCount === 1) await redis.expire(globalCounterKey, globalTtlSeconds);
+    if (globalCount > keyInfo.global_limit) {
+      return res.status(429).json({ error: 'Global usage limit exceeded' });
+    }
+  }
+
+  req.apiKeyId = keyInfo.id;
+  req.resolvedProjectId = projectId;
+  next();
+}
+
+module.exports = { apiKeyMiddleware };
